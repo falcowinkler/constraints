@@ -36,4 +36,35 @@ def test_revised_2():
     constraints = [(("A", "B"), (lambda x, y: x != y))]
     variables = {"A": {1, 2, 3}, "B": {2}}
     assert ac3.revised(constraints, variables, "A", "B")
-    assert variables == {"A": {1, 3}, "B": {2}}
+    assert {"A": {1, 3}, "B": {2}} == variables
+
+
+def test_ac3_no_changes():
+    constraints = [(("A", "B"), (lambda x, y: x > y))]
+    variables = {"A": {3, 4, 5}, "B": {1}}
+    assert ac3.ac3(constraints, variables)
+    assert {"A": {3, 4, 5}, "B": {1}} == variables
+
+
+def test_ac3_change_solvable():
+    constraints = [(("A", "B"), (lambda x, y: x != y))]
+    variables = {"A": {1, 2, 3}, "B": {2}}
+    assert ac3.ac3(constraints, variables)
+    assert {"A": {1, 3}, "B": {2}} == variables
+
+
+def test_ac3_change_solvable_multi_step():
+    constraints = [(("B", "A"), (lambda x, y: x < y)),
+                   (("A", "B"), (lambda y, x: x < y)),
+                   (("C", "B"), (lambda x, y: x != y)),
+                   (("B", "C"), (lambda y, x: x != y))]
+    variables = {"A": {1, 2, 3}, "B": {2, 3}, "C": {2, 3}}
+    assert ac3.ac3(constraints, variables)
+    assert {"A": {3}, "B": {2}, "C": {3}} == variables
+
+
+def test_get_neighbors():
+    constraints = [(("SA", "WA"), (lambda x: x != "wuff")),
+                   (("WA",), (lambda x: x > 123)),
+                   (("SA", "V"), (lambda x: x > 123))]
+    assert {"WA", "V"} == ac3.get_neighbors(constraints, "SA")
