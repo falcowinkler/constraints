@@ -1,6 +1,6 @@
 from algorithms.model import *
 import algorithms.ac_3 as ac3
-
+import random
 
 def consistent_with(constraint, assignment):
     constraint_fn = get_constraint_function(constraint)
@@ -27,7 +27,7 @@ def select_unassigned_variable_mrv(variables, assignment):
 
 
 def order_domain_values(variable, constraints, variables, assignment):
-    return variables[variable]  # TODO: implement least-constraining value
+    return sorted(variables[variable])  # TODO: implement least-constraining value
 
 
 def get_unassigned_neighbors(constraints, assignment, variable):
@@ -61,9 +61,9 @@ def _backtrack(variables, constraints, assignment):
         inferences = dict()
         if is_consistent_with(constraints, assignment, var, value):
             assignment[var] = value
-            inferences = inference(constraints, variables, assignment, var, value)
-            if inference is not False:
-                assignment.update(inferences)
+            inferred = inference(constraints, variables, assignment, var, value)
+            if inferred is not False:
+                assignment.update(inferred)
                 result = _backtrack(variables, constraints, assignment)
                 if result is not False:
                     return result
