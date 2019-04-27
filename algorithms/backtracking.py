@@ -1,6 +1,5 @@
-from algorithms.model import *
-import algorithms.ac_3 as ac3
-import random
+from algorithms.ac_3 import *
+
 
 def consistent_with(constraint, assignment):
     constraint_fn = get_constraint_function(constraint)
@@ -27,11 +26,11 @@ def select_unassigned_variable_mrv(variables, assignment):
 
 
 def order_domain_values(variable, constraints, variables, assignment):
-    return sorted(variables[variable])  # TODO: implement least-constraining value
+    return variables[variable]  # TODO: implement least-constraining value
 
 
 def get_unassigned_neighbors(constraints, assignment, variable):
-    neighbors = ac3.get_all_neighbors(constraints, variable)
+    neighbors = get_all_neighbors(constraints, variable)
     return [(neighbor, variable)
             for neighbor in neighbors
             if neighbor not in assignment
@@ -43,7 +42,7 @@ def inference(constraints, variables, assignment, variable, value):
     for k, v in assignment.items():
         variables_copy[k] = {v}
     variables_copy[variable] = {value}
-    if ac3.ac3(constraints, variables_copy, get_unassigned_neighbors(constraints, assignment, variable)):
+    if ac3(constraints, variables_copy, get_unassigned_neighbors(constraints, assignment, variable)):
         return {var: next(iter(inferred)) for var, inferred in variables_copy.items() if len(inferred) == 1}
     else:
         return False

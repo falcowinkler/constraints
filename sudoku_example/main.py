@@ -1,9 +1,9 @@
-import algorithms.backtracking as bt
-import algorithms.node_consistency as nc
+from algorithms.backtracking import *
+from algorithms.node_consistency import *
 from utility.constraint_factory import alldif
 
 if __name__ == "__main__":
-    sudoku_puzzle = [
+    puzzle = [
         [5, 3, 0, 0, 7, 0, 0, 0, 0],
         [6, 0, 0, 1, 9, 5, 0, 0, 0],
         [0, 9, 8, 0, 0, 0, 0, 6, 0],
@@ -13,6 +13,10 @@ if __name__ == "__main__":
         [0, 6, 0, 0, 0, 0, 2, 8, 0],
         [0, 0, 0, 4, 1, 9, 0, 0, 5],
         [0, 0, 0, 0, 8, 0, 0, 7, 9]]
+
+    print("Input sudoku puzzle: ")
+    for row in puzzle:
+        print(row)
 
     vars_x = ["A", "B", "C", "D", "E", "F", "G", "H", "I"]
     vars_y = list(map(str, range(1, 10)))
@@ -44,16 +48,18 @@ if __name__ == "__main__":
     unary = []
     for x in range(9):
         for y in range(9):
-            if sudoku_puzzle[y][x] != 0:
+            if puzzle[y][x] != 0:
                 unary.append(((vars_x[x] + vars_y[y],),
-                              lambda val, set_value=sudoku_puzzle[y][x]: val == set_value))
-    variables = nc.ensure_node_consistency(variables, unary)
-    solution = bt.backtrack(variables, constraints)
+                              lambda val, set_value=puzzle[y][x]: val == set_value))
+    variables = ensure_node_consistency(variables, unary)
+
+    solution = backtrack(variables, constraints)
     if not solution:
         print("Found no solution")
     number_board_solution = [[None] * 9 for i in range(9)]
     for x_i, x in enumerate(vars_x):
         for y_i, y in enumerate(vars_y):
             number_board_solution[y_i][x_i] = solution[x + y]
+    print("Solution")
     for row in number_board_solution:
         print(row)

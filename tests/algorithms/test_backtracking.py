@@ -102,3 +102,7 @@ def test_backtracking_map_coloring():
     assert countries == solution.keys()
     for constraint in constraints:
         assert bt.consistent_with(constraint, solution)
+
+
+def test_least_constraining_value():
+    pass
