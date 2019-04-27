@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import algorithms.backtracking as bt
 
 
@@ -23,3 +25,61 @@ def test_is_complete_incomplete():
     variables = {"A": [1, 2, 3], "B": ["wiff", "wuff", "waff"], "C": ["foo", "bar", "baz"]}
     assignment = {"A": 1}
     assert not bt.is_complete(assignment, variables)
+
+
+def test_select_unassigned_variable():
+    variables = {"A": [1, 2, 3], "B": ["wiff", "wuff"], "C": ["foo", "bar", "baz", "clazz"]}
+    assignment = {}
+    assert "B" == bt.select_unassigned_variable_mrv(variables, assignment)
+
+
+def test_select_unassigned_variable_with_assignment():
+    variables = {"A": [1, 2, 3], "B": ["wiff", "wuff"], "C": ["foo", "bar", "baz", "clazz"]}
+    assignment = {"B": "wuff"}
+    assert "A" == bt.select_unassigned_variable_mrv(variables, assignment)
+
+
+@patch("algorithms.ac_3.ac3", return_value=True)
+def test_inference_mac(ac3_mock):
+    constraints = [(("A", "B"), (lambda x, y: x > y))]
+    variables = {"A": {3, 4, 5}, "B": {1}}
+    assignment = {"B": 1}
+    assert {"B": 1} == bt.inference(constraints, variables, assignment, "B", 1)
+    ac3_mock.assert_called_once_with(constraints, variables, [("A", "B")])
+
+
+@patch("algorithms.ac_3.ac3", return_value=True)
+def test_inference_mac(ac3_mock):
+    constraints = [(("A", "B"), (lambda x, y: x > y))]
+    variables = {"A": {3, 4, 5}, "B": {1, 2}}
+    assignment = {"B": 1}
+    assert {"B": 1} == bt.inference(constraints, variables, assignment, "B", 1)
+    ac3_mock.assert_called_once_with(constraints, {"A": {3, 4, 5}, "B": {1}}, [("A", "B")])
+    assert {"A": {3, 4, 5}, "B": {1, 2}} == variables
+
+
+def test_inference_mac_with_change_in_ac3():
+    constraints = [(("A", "B"), (lambda x, y: x != y))]
+    variables = {"A": {1, 2}, "B": {2}}
+    assignment = {"B": 2}
+    assert {"A": 1, "B": 2} == bt.inference(constraints, variables, assignment, "B", 2)
+
+
+def test_inference_mac_with_multiple_changes_in_ac3():
+    constraints = [(("B", "A"), (lambda x, y: x < y)),
+                   (("A", "B"), (lambda y, x: x < y)),
+                   (("C", "B"), (lambda x, y: x != y)),
+                   (("B", "C"), (lambda y, x: x != y))]
+    variables = {"A": {1, 2, 3}, "B": {2, 3}, "C": {2, 3}}
+    assignment = {"C": 3}
+    assert {"A": 3, "B": 2, "C": 3} == bt.inference(constraints, variables, assignment, "C", 3)
+
+
+def test_failing_inference_mac_with_multiple_changes_in_ac3():
+    constraints = [(("B", "A"), (lambda x, y: x < y)),
+                   (("A", "B"), (lambda y, x: x < y)),
+                   (("C", "B"), (lambda x, y: x != y)),
+                   (("B", "C"), (lambda y, x: x != y))]
+    variables = {"A": {1, 2, 3}, "B": {2, 3}, "C": {2, 3}}
+    assignment = {"C": 2}
+    assert not bt.inference(constraints, variables, assignment, "C", 2)

@@ -63,8 +63,14 @@ def test_ac3_change_solvable_multi_step():
     assert {"A": {3}, "B": {2}, "C": {3}} == variables
 
 
+def test_ac3_unsolvable():
+    constraints = [(("A", "B"), (lambda x, y: x == y))]
+    variables = {"A": {1, 2, 3}, "B": {42}}
+    assert not ac3.ac3(constraints, variables, ac3.get_all_arcs(constraints))
+
+
 def test_get_neighbors():
     constraints = [(("SA", "WA"), (lambda x: x != "wuff")),
                    (("WA",), (lambda x: x > 123)),
                    (("SA", "V"), (lambda x: x > 123))]
-    assert {"WA", "V"} == ac3.get_neighbors(constraints, "SA")
+    assert {"WA", "V"} == ac3.get_all_neighbors(constraints, "SA")

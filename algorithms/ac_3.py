@@ -29,14 +29,16 @@ def ac3(constraints, variables, queue):
     while queue:
         x_i, x_j = queue.pop()
         if revised(constraints, variables, x_i, x_j):
-            for neighbor in get_neighbors(constraints, x_i) - {x_j}:
+            if len(variables[x_i]) == 0:
+                return False
+            for neighbor in get_all_neighbors(constraints, x_i) - {x_j}:
                 if (neighbor, x_i) in dict(constraints):
                     queue.append((neighbor, x_i))
     return True
 
 
-def get_neighbors(constraints, node):
+def get_all_neighbors(constraints, variable):
     arcs = get_all_arcs(constraints)
-    right_neighbor = [arc[1] for arc in arcs if arc[0] == node]
-    left_neighbor = [arc[0] for arc in arcs if arc[1] == node]
+    right_neighbor = [arc[1] for arc in arcs if arc[0] == variable]
+    left_neighbor = [arc[0] for arc in arcs if arc[1] == variable]
     return set(left_neighbor + right_neighbor)

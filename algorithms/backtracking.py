@@ -1,4 +1,5 @@
 from algorithms.model import *
+import algorithms.ac_3 as ac3
 
 
 def consistent_with(constraint, assignment):
@@ -18,3 +19,31 @@ def is_consistent_with(constraints, assignment, variable, value):
 
 def is_complete(assignment, variables):
     return assignment.keys() == variables.keys()
+
+
+def select_unassigned_variable_mrv(variables, assignment):
+    possible_choices = [var for var in variables.keys() if var not in assignment.keys()]
+    return min(possible_choices, key=lambda var: len(variables[var]))
+
+
+def order_domain_values(variable, constraints, variables, assignment):
+    return variables[variable]  # TODO: implement least-constraining value
+
+
+def get_unassigned_neighbors(constraints, assignment, variable):
+    neighbors = ac3.get_all_neighbors(constraints, variable)
+    return [(neighbor, variable)
+            for neighbor in neighbors
+            if neighbor not in assignment
+            and (neighbor, variable) in dict(constraints)]
+
+
+def inference(constraints, variables, assignment, variable, value):
+    variables_copy = dict(variables)
+    for k, v in assignment.items():
+        variables_copy[k] = {v}
+    variables_copy[variable] = {value}
+    if ac3.ac3(constraints, variables_copy, get_unassigned_neighbors(constraints, assignment, variable)):
+        return {var: next(iter(inferred)) for var, inferred in variables_copy.items() if len(inferred) == 1}
+    else:
+        return False
