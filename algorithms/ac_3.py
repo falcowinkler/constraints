@@ -25,8 +25,7 @@ def revised(constraints, variables, first, second):
     return has_been_revised
 
 
-def ac3(constraints, variables):
-    queue = get_all_arcs(constraints)
+def ac3(constraints, variables, queue):
     while queue:
         x_i, x_j = queue.pop()
         if revised(constraints, variables, x_i, x_j):

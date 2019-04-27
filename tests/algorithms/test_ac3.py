@@ -42,14 +42,14 @@ def test_revised_2():
 def test_ac3_no_changes():
     constraints = [(("A", "B"), (lambda x, y: x > y))]
     variables = {"A": {3, 4, 5}, "B": {1}}
-    assert ac3.ac3(constraints, variables)
+    assert ac3.ac3(constraints, variables, ac3.get_all_arcs(constraints))
     assert {"A": {3, 4, 5}, "B": {1}} == variables
 
 
 def test_ac3_change_solvable():
     constraints = [(("A", "B"), (lambda x, y: x != y))]
     variables = {"A": {1, 2, 3}, "B": {2}}
-    assert ac3.ac3(constraints, variables)
+    assert ac3.ac3(constraints, variables, ac3.get_all_arcs(constraints))
     assert {"A": {1, 3}, "B": {2}} == variables
 
 
@@ -59,7 +59,7 @@ def test_ac3_change_solvable_multi_step():
                    (("C", "B"), (lambda x, y: x != y)),
                    (("B", "C"), (lambda y, x: x != y))]
     variables = {"A": {1, 2, 3}, "B": {2, 3}, "C": {2, 3}}
-    assert ac3.ac3(constraints, variables)
+    assert ac3.ac3(constraints, variables, ac3.get_all_arcs(constraints))
     assert {"A": {3}, "B": {2}, "C": {3}} == variables
 
 
