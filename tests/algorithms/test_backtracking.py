@@ -83,3 +83,22 @@ def test_failing_inference_mac_with_multiple_changes_in_ac3():
     variables = {"A": {1, 2, 3}, "B": {2, 3}, "C": {2, 3}}
     assignment = {"C": 2}
     assert not bt.inference(constraints, variables, assignment, "C", 2)
+
+
+def test_backtracking_map_coloring():
+    countries = {"WA", "NT", "Q", "NSW", "V", "SA", "T"}
+    variables = {country: {"red", "green", "blue"} for country in countries}
+    neq = lambda x, y: x != y
+    constraints = [(("SA", "WA"), neq),
+                   (("SA", "NT"), neq),
+                   (("SA", "Q"), neq),
+                   (("SA", "NSW"), neq),
+                   (("SA", "V"), neq),
+                   (("WA", "NT"), neq),
+                   (("NT", "Q"), neq),
+                   (("Q", "NSW"), neq),
+                   (("NSW", "V"), neq)]
+    solution = bt.backtrack(variables, constraints)
+    assert countries == solution.keys()
+    for constraint in constraints:
+        assert bt.consistent_with(constraint, solution)

@@ -47,3 +47,29 @@ def inference(constraints, variables, assignment, variable, value):
         return {var: next(iter(inferred)) for var, inferred in variables_copy.items() if len(inferred) == 1}
     else:
         return False
+
+
+def backtrack(variables, constraints):
+    return _backtrack(variables, constraints, {})
+
+
+def _backtrack(variables, constraints, assignment):
+    if is_complete(assignment, variables):
+        return assignment
+    var = select_unassigned_variable_mrv(variables, assignment)
+    for value in order_domain_values(var, constraints, variables, assignment):
+        inferences = dict()
+        if is_consistent_with(constraints, assignment, var, value):
+            assignment[var] = value
+            inferences = inference(constraints, variables, assignment, var, value)
+            if inference is not False:
+                assignment.update(inferences)
+                result = _backtrack(variables, constraints, assignment)
+                if result is not False:
+                    return result
+        if var in assignment:
+            del assignment[var]
+        for v in inferences.keys():
+            if v in assignment:
+                del assignment[v]
+    return False
