@@ -1,4 +1,5 @@
-from algorithms.ac_3 import *
+from algorithms.model import *
+import algorithms.ac_3 as ac3
 
 
 def consistent_with(constraint, assignment):
@@ -30,7 +31,7 @@ def order_domain_values(variable, constraints, variables, assignment):
 
 
 def get_unassigned_neighbors(constraints, assignment, variable):
-    neighbors = get_all_neighbors(constraints, variable)
+    neighbors = ac3.get_all_neighbors(constraints, variable)
     return [(neighbor, variable)
             for neighbor in neighbors
             if neighbor not in assignment
@@ -42,7 +43,7 @@ def inference(constraints, variables, assignment, variable, value):
     for k, v in assignment.items():
         variables_copy[k] = {v}
     variables_copy[variable] = {value}
-    if ac3(constraints, variables_copy, get_unassigned_neighbors(constraints, assignment, variable)):
+    if ac3.ac3(constraints, variables_copy, get_unassigned_neighbors(constraints, assignment, variable)):
         return {var: next(iter(inferred)) for var, inferred in variables_copy.items() if len(inferred) == 1}
     else:
         return False
@@ -57,18 +58,13 @@ def _backtrack(variables, constraints, assignment):
         return assignment
     var = select_unassigned_variable_mrv(variables, assignment)
     for value in order_domain_values(var, constraints, variables, assignment):
-        inferences = dict()
         if is_consistent_with(constraints, assignment, var, value):
-            assignment[var] = value
+            local_assignment = assignment.copy()
+            local_assignment[var] = value
             inferred = inference(constraints, variables, assignment, var, value)
             if inferred is not False:
-                assignment.update(inferred)
-                result = _backtrack(variables, constraints, assignment)
+                local_assignment.update(inferred)
+                result = _backtrack(variables, constraints, local_assignment)
                 if result is not False:
                     return result
-        if var in assignment:
-            del assignment[var]
-        for v in inferences.keys():
-            if v in assignment:
-                del assignment[v]
     return False
