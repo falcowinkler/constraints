@@ -20,18 +20,18 @@ if __name__ == "__main__":
     vars_x = ["A", "B", "C", "D", "E", "F", "G", "H", "I"]
     vars_y = list(map(str, range(1, 10)))
     variables = dict()
-    constraints = []
+    constraints = dict()
     for x in vars_x:
         for y in vars_y:
             variables[x + y] = set(range(1, 10))
     for x in vars_x:
-        constraints.extend(alldif([x + y for y in vars_y]))
+        constraints.update(alldif([x + y for y in vars_y]))
     for y in vars_y:
-        constraints.extend(alldif([x + y for x in vars_x]))
+        constraints.update(alldif([x + y for x in vars_x]))
 
     for base in range(1, 10, 3):
         for x in [["A", "B", "C"], ["D", "E", "F"], ["G", "H", "I"]]:
-            constraints.extend(
+            constraints.update(
                 alldif([x[0] + str(base),
                         x[0] + str(base + 1),
                         x[0] + str(base + 2),
@@ -44,12 +44,11 @@ if __name__ == "__main__":
                         ]))
 
     # unary constraints
-    unary = []
+    unary = dict()
     for x in range(9):
         for y in range(9):
             if puzzle[y][x] != 0:
-                unary.append(((vars_x[x] + vars_y[y],),
-                              lambda val, set_value=puzzle[y][x]: val == set_value))
+                unary[(vars_x[x] + vars_y[y],)] = lambda val, set_value=puzzle[y][x]: val == set_value
     variables = ensure_node_consistency(variables, unary)
 
     solution = backtrack(variables, constraints)

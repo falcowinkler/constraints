@@ -1,3 +1,5 @@
+import copy
+
 from algorithms.model import *
 import algorithms.ac_3 as ac3
 
@@ -13,7 +15,7 @@ def consistent_with(constraint, assignment):
 def is_consistent_with(constraints, assignment, variable, value):
     assignment = dict(assignment)
     assignment[variable] = value
-    consistency_checks = [consistent_with(constraint, assignment) for constraint in constraints]
+    consistency_checks = [consistent_with(constraint, assignment) for constraint in constraints.items()]
     return False not in consistency_checks
 
 
@@ -49,18 +51,19 @@ def get_unassigned_neighbors(constraints, assignment, variable):
             and (neighbor, variable) in dict(constraints)]
 
 
-def inference_mac(constraints, variables, assignment, variable, value):
-    for k, v in assignment.items():
-        variables[k] = {v}
-    variables[variable] = {value}
-    if ac3.ac3(constraints, variables, get_unassigned_neighbors(constraints, assignment, variable)):
-        return {var: next(iter(inferred)) for var, inferred in variables.items() if len(inferred) == 1}
-    else:
-        return False
+def forward_check(variables, variable, value, assignment, constraints):
+    for neighbor in ac3.get_all_neighbors(constraints, variable):
+        if neighbor not in assignment:
+            if value in variables[neighbor]:
+                variables[neighbor].remove(value)
+                if len(variables[neighbor]) == 0:
+                    return False
 
 
 def backtrack(variables, constraints):
-    return _backtrack(variables, constraints, {})
+    ac3.ac3(constraints, variables, ac3.get_all_arcs(constraints))
+    assignment = {k: next(iter(v)) for k, v in variables.items() if len(v) == 1}
+    return _backtrack(variables, constraints, assignment)
 
 
 def _backtrack(variables, constraints, assignment):
@@ -69,14 +72,11 @@ def _backtrack(variables, constraints, assignment):
     var = select_unassigned_variable_mrv(variables, assignment)
     for value in order_domain_values(var, constraints, variables):
         if is_consistent_with(constraints, assignment, var, value):
-            local_assignment = assignment.copy()
-            local_assignment[var] = value
-            local_variables = variables.copy()
-            # inferred = inference_mac(constraints, local_variables, local_assignment, var, value)
-            # if inferred is not False:
-            #    local_assignment.update(inferred)
-            result = _backtrack(local_variables, constraints, local_assignment)
+            assignment[var] = value
+            local_vars = copy.deepcopy(variables)
+            forward_check(local_vars, var, value, assignment, constraints)
+            result = _backtrack(local_vars, constraints, assignment)
             if result is not False:
                 return result
-
+            del assignment[var]
     return False
