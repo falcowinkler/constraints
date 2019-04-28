@@ -1,3 +1,4 @@
+import time
 from algorithms.backtracking import *
 from algorithms.node_consistency import *
 from utility.constraint_factory import alldif
@@ -50,8 +51,9 @@ if __name__ == "__main__":
             if puzzle[y][x] != 0:
                 unary[(vars_x[x] + vars_y[y],)] = lambda val, set_value=puzzle[y][x]: val == set_value
     variables = ensure_node_consistency(variables, unary)
-
+    before = time.time()
     solution = backtrack(variables, constraints)
+    after = time.time()
     if not solution:
         print("Found no solution")
     number_board_solution = [[None] * 9 for i in range(9)]
@@ -61,3 +63,4 @@ if __name__ == "__main__":
     print("Solution")
     for row in number_board_solution:
         print(row)
+    print("Time to find solution: ", after - before, " seconds")

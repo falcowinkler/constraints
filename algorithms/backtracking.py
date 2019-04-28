@@ -28,6 +28,7 @@ def select_unassigned_variable_mrv(variables, assignment):
     return min(possible_choices, key=lambda var: len(variables[var]))
 
 
+# Assumes you have only != constraints, for now
 def count_conflicts(variable, value, constraints, variables):
     count = 0
     for neighbor in ac3.get_all_neighbors(constraints, variable):
@@ -51,13 +52,14 @@ def get_unassigned_neighbors(constraints, assignment, variable):
             and (neighbor, variable) in dict(constraints)]
 
 
-def forward_check(variables, variable, value, assignment, constraints):
-    for neighbor in ac3.get_all_neighbors(constraints, variable):
+def forward_propagation(variables, variable, value, assignment, constraints):
+    for neighbor in get_unassigned_neighbors(constraints, assignment, variable):
         if neighbor not in assignment:
-            if value in variables[neighbor]:
-                variables[neighbor].remove(value)
-                if len(variables[neighbor]) == 0:
-                    return False
+            to_be_removed = set()
+            for neighbor_value in variables[neighbor[0]]:
+                if not constraints[neighbor](neighbor_value, value):
+                    to_be_removed.add(value)
+            variables[neighbor[0]] -= to_be_removed
 
 
 def backtrack(variables, constraints):
@@ -74,9 +76,10 @@ def _backtrack(variables, constraints, assignment):
         if is_consistent_with(constraints, assignment, var, value):
             assignment[var] = value
             local_vars = copy.deepcopy(variables)
-            forward_check(local_vars, var, value, assignment, constraints)
-            result = _backtrack(local_vars, constraints, assignment)
-            if result is not False:
-                return result
+            forward_propagation(local_vars, var, value, assignment, constraints)
+            if True:
+                result = _backtrack(local_vars, constraints, assignment)
+                if result is not False:
+                    return result
             del assignment[var]
     return False

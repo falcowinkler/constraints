@@ -15,13 +15,13 @@ X is a set of names, D a set of allowed values for each variable,
 and a constraint is a pair `<scope, rel>` where scope is a tuple of variables that participate in the constraint,
 and rel is a relation describing allowed values.
 
-So i define a constraint as a tuple (participating variables, function).
+Here constraint is modelled as as a key, value pair (participating variables, function).
 The variables and their domains should be held in a dict, where the key is the variable name and the value is the domain (as a set).
 
-The algorithm uses backtracking with MAC, meaning that in each inference step in backtracking, it *M*aintains *A*rc *C*onsistency. 
+The algorithm uses the simplest version of backtracking, using forward propagation in every step.
 It picks the most restrictive variable first for assignment, meaning the variable that has the smallest domain.
 
-Improvements:
- - better "order_domain_values"
- - try out different algorithms
- - maybe ac3 as preprocessing step
+### todo
+
+- make it faster! sudoku should be at least 10 times faster
+- visualize assignment with graphviz https://www.python-course.eu/networkx.php
