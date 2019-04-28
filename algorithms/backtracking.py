@@ -26,8 +26,19 @@ def select_unassigned_variable_mrv(variables, assignment):
     return min(possible_choices, key=lambda var: len(variables[var]))
 
 
-def order_domain_values(variable, constraints, variables, assignment):
-    return variables[variable]  # TODO: implement least-constraining value
+def count_conflicts(variable, value, constraints, variables):
+    count = 0
+    for neighbor in ac3.get_all_neighbors(constraints, variable):
+        if value in variables[neighbor]:
+            count += 1
+    return count
+
+
+def order_domain_values(variable, constraints, variables):
+    return sorted(list(variables[variable]), key=lambda value: count_conflicts(variable,
+                                                                               value,
+                                                                               constraints,
+                                                                               variables))
 
 
 def get_unassigned_neighbors(constraints, assignment, variable):
@@ -38,13 +49,12 @@ def get_unassigned_neighbors(constraints, assignment, variable):
             and (neighbor, variable) in dict(constraints)]
 
 
-def inference(constraints, variables, assignment, variable, value):
-    variables_copy = dict(variables)
+def inference_mac(constraints, variables, assignment, variable, value):
     for k, v in assignment.items():
-        variables_copy[k] = {v}
-    variables_copy[variable] = {value}
-    if ac3.ac3(constraints, variables_copy, get_unassigned_neighbors(constraints, assignment, variable)):
-        return {var: next(iter(inferred)) for var, inferred in variables_copy.items() if len(inferred) == 1}
+        variables[k] = {v}
+    variables[variable] = {value}
+    if ac3.ac3(constraints, variables, get_unassigned_neighbors(constraints, assignment, variable)):
+        return {var: next(iter(inferred)) for var, inferred in variables.items() if len(inferred) == 1}
     else:
         return False
 
@@ -57,14 +67,16 @@ def _backtrack(variables, constraints, assignment):
     if is_complete(assignment, variables):
         return assignment
     var = select_unassigned_variable_mrv(variables, assignment)
-    for value in order_domain_values(var, constraints, variables, assignment):
+    for value in order_domain_values(var, constraints, variables):
         if is_consistent_with(constraints, assignment, var, value):
             local_assignment = assignment.copy()
             local_assignment[var] = value
-            inferred = inference(constraints, variables, assignment, var, value)
-            if inferred is not False:
-                local_assignment.update(inferred)
-                result = _backtrack(variables, constraints, local_assignment)
-                if result is not False:
-                    return result
+            local_variables = variables.copy()
+            # inferred = inference_mac(constraints, local_variables, local_assignment, var, value)
+            # if inferred is not False:
+            #    local_assignment.update(inferred)
+            result = _backtrack(local_variables, constraints, local_assignment)
+            if result is not False:
+                return result
+
     return False

@@ -70,7 +70,7 @@ def test_ac3_unsolvable():
 
 
 def test_get_neighbors():
-    constraints = [(("SA", "WA"), (lambda x: x != "wuff")),
+    constraints = [(("WA", "SA"), (lambda x: x != "wuff")),
                    (("WA",), (lambda x: x > 123)),
-                   (("SA", "V"), (lambda x: x > 123))]
+                   (("V", "SA"), (lambda x: x > 123))]
     assert {"WA", "V"} == ac3.get_all_neighbors(constraints, "SA")

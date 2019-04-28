@@ -39,6 +39,5 @@ def ac3(constraints, variables, queue):
 
 def get_all_neighbors(constraints, variable):
     arcs = get_all_arcs(constraints)
-    right_neighbor = [arc[1] for arc in arcs if arc[0] == variable]
-    left_neighbor = [arc[0] for arc in arcs if arc[1] == variable]
-    return set(left_neighbor + right_neighbor)
+    neighbors = [arc[0] for arc in arcs if arc[1] == variable]
+    return set(neighbors)
