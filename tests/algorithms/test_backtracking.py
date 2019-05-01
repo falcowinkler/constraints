@@ -5,15 +5,14 @@ from algorithms.ac_3 import build_neighbors
 
 
 def test_is_consistent_with():
-    constraints = {("A", "B"): lambda x, y: x >= y}
-    assignment = {"A": 2}
-    assert bt.is_consistent_with(constraints, assignment, "B", 1)
+    constraints = {("B", "A"): lambda x, y: x <= y}
+    assert bt.is_consistent_with(bt.ConstraintProblem({"A": {2}}, constraints), "B", 1)
 
 
 def test_is_not_consistent_with():
-    constraints = {("A", "B"): lambda x, y: x >= y}
-    assignment = {"A": 2}
-    assert not bt.is_consistent_with(constraints, assignment, "B", 3)
+    constraints = {("B", "A"): lambda x, y: x <= y}
+    cp = bt.ConstraintProblem({"A": {2}, "B": {1, 2, 3}}, constraints)
+    assert not bt.is_consistent_with(cp, "B", 3)
 
 
 def test_is_complete():
@@ -90,12 +89,9 @@ def test_forward_check():
     variables, constraints = map_coloring_problem()
     variables["WA"] = {"green"}
     variables["NT"] = {"red"}
-    pruned = defaultdict(list)
-    bt.forward_propagation(variables, "Q", "blue", {"WA": "green", "NT": "red"},
-                           constraints,
-                           build_neighbors(constraints, variables),
-                           pruned)
+    cp = bt.ConstraintProblem(variables, constraints)
+    bt.forward_propagation(cp, "Q", "blue")
     assert variables["SA"] == {"green", "red"}
     # remember that forward check from Q pruned the blue choice from SA, so we can revert the change later
     # and avoid copys of our variable domains
-    assert pruned["Q"] == [("blue", "SA")]
+    assert cp.pruned["Q"] == [("blue", "SA")]

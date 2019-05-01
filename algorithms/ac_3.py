@@ -24,6 +24,8 @@ def build_neighbors(constraints, variables):
         for constraint in constraints.keys():
             if constraint[0] == var:
                 neighbor_dict[var].add(constraint[1])
+            elif constraint[1] == var:
+                neighbor_dict[var].add(constraint[0])
     return neighbor_dict
 
 

@@ -3,6 +3,15 @@ import algorithms.ac_3 as ac3
 from collections import defaultdict
 
 
+class ConstraintProblem:
+    def __init__(self, variables, constraints):
+        self.variables = variables
+        self.constraints = constraints
+        self.assignment = {k: next(iter(v)) for k, v in variables.items() if len(v) == 1}
+        self.pruned = defaultdict(list)
+        self.neighbor_list = ac3.build_neighbors(constraints, variables)
+
+
 def consistent_with(constraint, assignment):
     constraint_fn = get_constraint_function(constraint)
     x_i, x_j = get_participating_variables(constraint)
@@ -11,11 +20,16 @@ def consistent_with(constraint, assignment):
         else True
 
 
-def is_consistent_with(constraints, assignment, variable, value):
-    assignment = dict(assignment)
-    assignment[variable] = value
-    consistency_checks = [consistent_with(constraint, assignment) for constraint in constraints.items()]
-    return False not in consistency_checks
+def is_consistent_with(cp, variable, value):
+    for k, v in cp.assignment.items():
+        left = (variable, k) in cp.constraints
+        if not left and not (k, variable) in cp.constraints:
+            continue
+        constraint_fn = cp.constraints[(variable, k)] if left \
+            else cp.constraints[(k, variable)]
+        if k in cp.neighbor_list[variable] and not (constraint_fn(value, v) if left else constraint_fn(v, value)):
+            return False
+    return True
 
 
 def is_complete(assignment, variables):
@@ -45,46 +59,44 @@ def order_domain_values(variable, neighbor_list, variables):
                                                                                variables))
 
 
-def get_unassigned_neighbors(constraints, neighbors, assignment, variable):
-    neighbors = ac3.get_all_neighbors(neighbors, variable)
+def get_unassigned_neighbors(cp, variable):
+    neighbors = ac3.get_all_neighbors(cp.neighbor_list, variable)
     return [neighbor
             for neighbor in neighbors
-            if neighbor not in assignment
-            and (neighbor, variable) in dict(constraints)]
+            if neighbor not in cp.assignment
+            and (neighbor, variable) in dict(cp.constraints)]
 
 
-def forward_propagation(variables, variable, value, assignment, constraints, neighbors, pruned):
-    for neighbor in get_unassigned_neighbors(constraints, neighbors, assignment, variable):
+def forward_propagation(cp, variable, value):
+    for neighbor in get_unassigned_neighbors(cp, variable):
         to_be_removed = set()
-        for neighbor_value in variables[neighbor]:
-            if not constraints[(neighbor, variable)](neighbor_value, value):
+        for neighbor_value in cp.variables[neighbor]:
+            if not cp.constraints[(neighbor, variable)](neighbor_value, value):
                 to_be_removed.add(value)
-                pruned[variable].append((neighbor_value, neighbor))
-        variables[neighbor] -= to_be_removed
+                cp.pruned[variable].append((neighbor_value, neighbor))
+        cp.variables[neighbor] -= to_be_removed
 
 
 def backtrack(variables, constraints):
     ac3.ac3(constraints, variables, ac3.get_all_arcs(constraints))
-    assignment = {k: next(iter(v)) for k, v in variables.items() if len(v) == 1}
-    pruned = defaultdict(list)
-    neighbor_list = ac3.build_neighbors(constraints, variables)
-    return _backtrack(variables, constraints, assignment, pruned, neighbor_list)
+    cp = ConstraintProblem(variables, constraints)
+    return _backtrack(cp)
 
 
-def _backtrack(variables, constraints, assignment, pruned, neighbor_list):
-    if is_complete(assignment, variables):
-        return assignment
-    var = select_unassigned_variable_mrv(variables, assignment)
-    for value in order_domain_values(var, neighbor_list, variables):
-        if is_consistent_with(constraints, assignment, var, value):
-            assignment[var] = value
-            forward_propagation(variables, var, value, assignment, constraints, neighbor_list, pruned)
+def _backtrack(cp):
+    if is_complete(cp.assignment, cp.variables):
+        return cp.assignment
+    var = select_unassigned_variable_mrv(cp.variables, cp.assignment)
+    for value in order_domain_values(var, cp.neighbor_list, cp.variables):
+        if is_consistent_with(cp, var, value):
+            cp.assignment[var] = value
+            forward_propagation(cp, var, value)
             if True:
-                result = _backtrack(variables, constraints, assignment, pruned, neighbor_list)
+                result = _backtrack(cp)
                 if result is not False:
                     return result
-            for pruned_value, pruned_var in pruned[var]:
-                variables[pruned_var].add(pruned_value)
-            pruned[var] = list()
-            del assignment[var]
+            for pruned_value, pruned_var in cp.pruned[var]:
+                cp.variables[pruned_var].add(pruned_value)
+            cp.pruned[var] = list()
+            del cp.assignment[var]
     return False
