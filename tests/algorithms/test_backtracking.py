@@ -1,6 +1,7 @@
 from unittest.mock import patch
-
+from collections import defaultdict
 import algorithms.backtracking as bt
+from algorithms.ac_3 import build_neighbors
 
 
 def test_is_consistent_with():
@@ -46,6 +47,7 @@ def map_coloring_problem():
     constraints = {("SA", "WA"): neq,
                    ("SA", "NT"): neq,
                    ("SA", "Q"): neq,
+                   ("Q", "SA"): neq,
                    ("SA", "NSW"): neq,
                    ("SA", "V"): neq,
                    ("WA", "NT"): neq,
@@ -73,7 +75,7 @@ def test_least_constraining_value():
     variables = {"B": {1},
                  "A": {1, 2, 3},
                  "C": {1, 2}}
-    assert [3, 2, 1] == bt.order_domain_values(variable, constraints, variables)
+    assert [3, 2, 1] == bt.order_domain_values(variable, build_neighbors(constraints, variables), variables)
 
 
 def test_least_constraining_value_map_coloring():
@@ -81,12 +83,19 @@ def test_least_constraining_value_map_coloring():
     variables["WA"] = {"green"}
     variables["NT"] = {"red"}
     variables["SA"] = {"blue"}
-    assert "green" == bt.order_domain_values("Q", constraints, variables)[0]
+    assert "blue" != bt.order_domain_values("Q", build_neighbors(constraints, variables), variables)[0]
 
 
 def test_forward_check():
     variables, constraints = map_coloring_problem()
     variables["WA"] = {"green"}
     variables["NT"] = {"red"}
-    bt.forward_propagation(variables, "Q", "blue", {"WA": "green", "NT": "red"}, constraints)
+    pruned = defaultdict(list)
+    bt.forward_propagation(variables, "Q", "blue", {"WA": "green", "NT": "red"},
+                           constraints,
+                           build_neighbors(constraints, variables),
+                           pruned)
     assert variables["SA"] == {"green", "red"}
+    # remember that forward check from Q pruned the blue choice from SA, so we can revert the change later
+    # and avoid copys of our variable domains
+    assert pruned["Q"] == [("blue", "SA")]
