@@ -1,8 +1,6 @@
 import os
 import logging as log
 
-log.error(os.getcwd())
-print(os.getcwd())
 import algorithms.node_consistency as nc
 
 
