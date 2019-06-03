@@ -23,5 +23,4 @@ It picks the most restrictive variable first for assignment, meaning the variabl
 
 ### todo
 
-- make it faster! sudoku should be at least 10 times faster
-- visualize assignment with graphviz https://www.python-course.eu/networkx.php
+- visualize assignment with e.g. https://www.python-course.eu/networkx.php
